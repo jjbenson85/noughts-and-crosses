@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title></title>
+    <title>Noughts & Crosses</title>
     <meta charset="utf-8">
     <link href="https://fonts.googleapis.com/css?family=Permanent+Marker&display=swap" rel="stylesheet">
     <style type="text/css">
@@ -10,7 +9,12 @@
             box-sizing: border-box;
             font-family: 'Permanent Marker', cursive;
         }
-
+        h1{
+            font-size: 2em;
+        }
+        h2{
+            font-size: 1.5em;
+        }
         body {
             background: black;
             color: white;
@@ -41,7 +45,12 @@
         .noughts,
         .cell.noughts {
             color: #0AEF03;
-            text-shadow: 0 0 20px #0AEF03
+            text-shadow: 0 0 20px #0AEF03;
+            opacity: 1;
+        }
+        .cell.noughts.dim, .cell.crosses.dim {
+            color: white;
+            text-shadow: none;
         }
 
         .crosses,
@@ -49,33 +58,61 @@
             color: #FFFC00;
             text-shadow: 0 0 20px #FFFC00;
         }
+        .tally-container{
+            display: flex;
+            justify-content: space-around;
+            font-size: 3em;
+            width: 100vw;
+        }
+        .tally{
+            height: 1em;
+        }
+        button{
+            font-size: 1.5em;
+            color: #0AEF03;
+            border: 1px solid white;
+            background-color: black;
+        }
+        button:hover{
+             color: #FFFC00;
+        }
+        button:focus{
+            outline: 2px solid white;
+        }
     </style>
 </head>
 
 <body>
     <h1><span class="noughts">Noughts</span> & <span class="crosses">Crosses</span></h1>
-    <h2 id="message">X Turn</h2>
+    <div class="tally-container">
+        <div id="noughts-tally" class="noughts tally"></div>
+        <div id="crosses-tally" class="crosses tally"></div>
+    </div>
+    <h2 id="message"><span class="crosses">Crosses</span> Turn</h2>
     <div class="grid">
-        <div onclick="handleClick(1)" id="1" class="cell"></div>
-        <div onclick="handleClick(2)" id="2" class="cell"></div>
-        <div onclick="handleClick(3)" id="3" class="cell"></div>
-        <div onclick="handleClick(4)" id="4" class="cell"></div>
-        <div onclick="handleClick(5)" id="5" class="cell"></div>
-        <div onclick="handleClick(6)" id="6" class="cell"></div>
-        <div onclick="handleClick(7)" id="7" class="cell"></div>
-        <div onclick="handleClick(8)" id="8" class="cell"></div>
-        <div onclick="handleClick(9)" id="9" class="cell"></div>
+        <div id="1" class="cell"></div>
+        <div id="2" class="cell"></div>
+        <div id="3" class="cell"></div>
+        <div id="4" class="cell"></div>
+        <div id="5" class="cell"></div>
+        <div id="6" class="cell"></div>
+        <div id="7" class="cell"></div>
+        <div id="8" class="cell"></div>
+        <div id="9" class="cell"></div>
     </div>
     <br />
-    <button onclick="newGame()">New Game</button>
+    <button onclick="init()">New Game</button>
     <script>
-        console.log('test')
         let player = 'crosses'
+        const noughtsTally = document.querySelector('#noughts-tally')
+        const crossesTally = document.querySelector('#crosses-tally')
         const cellArr = document.querySelectorAll('.cell')
         const messageBox = document.querySelector('#message')
 
-        const redArr = []
-        const blueArr = []
+        let gameOver = false
+        let crossesArr = []
+        let noughtsArr = []
+        let counter = 0
 
         const winCombos = [
             [1, 2, 3],
@@ -88,51 +125,94 @@
             [3, 5, 7]
         ]
 
-        function checkForWin(arr) {
+        const noughtsTurn = () => {
+            messageBox.innerHTML = '<span class="noughts">Noughts</span> Turn'
+        }
+        const crossesTurn = () => {
+            messageBox.innerHTML = '<span class="crosses">Crosses</span> Turn'
+        }
+        const noughtsWin = () => {
+            messageBox.innerHTML = '<span class="noughts">Noughts</span> Win!'
+            noughtsTally.innerText = noughtsTally.innerText + '|'
+        }
+        const crossesWin = () => {
+            messageBox.innerHTML = '<span class="crosses">Crosses</span> Win!'
+            crossesTally.innerText = crossesTally.innerText + '|'
+        }
+        const gameTied = () => {
+            messageBox.innerHTML = '<span class="noughts">Noughts</span> and <span class="crosses">Crosses</span> Tie!'
+        }
+
+        const checkForWin = (arr) => {
             return winCombos.reduce((acc, line) => {
-                const lineCount = line.reduce((lineAcc, cell) => {
-                    if (arr.includes(cell)) lineAcc++
-                    return lineAcc
-                }, 0)
-                if (lineCount === 3) acc = true
+                const count = line.reduce((lineAcc, cell) => {
+                    return arr.includes(parseInt(cell)) ? ++lineAcc : lineAcc
+                }, 0) 
+                if(count === 3) acc = line
                 return acc
             }, false)
         }
 
+        const endTurn = (arr,id) => {
+                arr.push(id)
+                arr.sort()
+                const isWinningLine = checkForWin(arr)
+                if (!!isWinningLine) {
+                    gameOver=true
+                    if(player === 'noughts'){
+                        noughtsWin()
+                    }else{
+                        crossesWin()
+                    }
+                    cellArr.forEach(cell => {
+                        cell.removeEventListener('click', handleClick)
+                        if(!isWinningLine.includes(parseInt(cell.id))){
+                            cell.classList.add('dim')
+                        }
+                    })
+                }
+            }
 
-        function newGame() {
-            location.reload(true)
-        }
+        
 
-        function handleClick(id) {
-            console.log(id)
+        const handleClick = (e) => {
+            
+            const id = parseInt(e.currentTarget.id)
             const square = document.getElementById(id)
+
             square.classList.add(player)
             square.innerText = player === 'crosses' ? 'X' : '0'
+
             if (player === 'crosses') {
+                noughtsTurn()
+                endTurn(crossesArr, id)
                 player = 'noughts'
-                messageBox.innerText = '0 Turn'
-                redArr.push(id)
-                redArr.sort()
-                if (checkForWin(redArr)) {
-                    messageBox.innerText = 'X wins!'
-                    cellArr.forEach(cell => cell.onclick = false)
-                }
-            }
-            else {
+            }else {
+                crossesTurn()
+                endTurn(noughtsArr, id)
                 player = 'crosses'
-                messageBox.innerText = 'X Turn'
-                blueArr.push(id)
-                blueArr.sort()
-                if (checkForWin(blueArr)) {
-                    messageBox.innerText = '0 wins!'
-                    cellArr.forEach(cell => cell.onclick = false)
-                }
             }
-            square.onclick = false
 
+            square.removeEventListener('click', handleClick)
 
+            counter++
+            if(counter===9 && !gameOver) gameTied()
         }
+
+        const init = () => {
+            gameOver = false
+            cellArr.forEach(cell => {
+                cell.innerText=""
+                cell.classList.remove('noughts','crosses','dim')
+                cell.addEventListener('click', handleClick)
+            })
+            crossesArr = []
+            noughtsArr = []
+            if(player==='crosses') crossesTurn()
+            else noughtsTurn()
+            counter = 0
+        }
+        init()
     </script>
 </body>
 
