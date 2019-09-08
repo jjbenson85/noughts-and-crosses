@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        body {
+            background: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            height: 100vh;
+        }
+
+        .grid {
+            width: 310px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: black;
+            border: 1px solid grey;
+            font-size: 6em;
+            text-align: center;
+            line-height: 1em;
+        }
+
+        .noughts,
+        .cell.noughts {
+            color: #0AEF03;
+            text-shadow: 0 0 20px #0AEF03
+        }
+
+        .crosses,
+        .cell.crosses {
+            color: #FFFC00;
+            text-shadow: 0 0 20px #FFFC00;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><span class="noughts">Noughts</span> & <span class="crosses">Crosses</span></h1>
+    <h2 id="message">X Turn</h2>
+    <div class="grid">
+        <div onclick="handleClick(1)" id="1" class="cell"></div>
+        <div onclick="handleClick(2)" id="2" class="cell"></div>
+        <div onclick="handleClick(3)" id="3" class="cell"></div>
+        <div onclick="handleClick(4)" id="4" class="cell"></div>
+        <div onclick="handleClick(5)" id="5" class="cell"></div>
+        <div onclick="handleClick(6)" id="6" class="cell"></div>
+        <div onclick="handleClick(7)" id="7" class="cell"></div>
+        <div onclick="handleClick(8)" id="8" class="cell"></div>
+        <div onclick="handleClick(9)" id="9" class="cell"></div>
+    </div>
+    <br />
+    <button onclick="newGame()">New Game</button>
+    <script>
+        console.log('test')
+        let player = 'crosses'
+        const cellArr = document.querySelectorAll('.cell')
+        const messageBox = document.querySelector('#message')
+
+        const redArr = []
+        const blueArr = []
+
+        const winCombos = [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+            [1, 4, 7],
+            [2, 5, 8],
+            [3, 6, 9],
+            [1, 5, 9],
+            [3, 5, 7]
+        ]
+
+        function checkForWin(arr) {
+            return winCombos.reduce((acc, line) => {
+                const lineCount = line.reduce((lineAcc, cell) => {
+                    if (arr.includes(cell)) lineAcc++
+                    return lineAcc
+                }, 0)
+                if (lineCount === 3) acc = true
+                return acc
+            }, false)
+        }
+
+
+        function newGame() {
+            location.reload(true)
+        }
+
+        function handleClick(id) {
+            console.log(id)
+            const square = document.getElementById(id)
+            square.classList.add(player)
+            square.innerText = player === 'crosses' ? 'X' : '0'
+            if (player === 'crosses') {
+                player = 'noughts'
+                messageBox.innerText = '0 Turn'
+                redArr.push(id)
+                redArr.sort()
+                if (checkForWin(redArr)) {
+                    messageBox.innerText = 'X wins!'
+                    cellArr.forEach(cell => cell.onclick = false)
+                }
+            }
+            else {
+                player = 'crosses'
+                messageBox.innerText = 'X Turn'
+                blueArr.push(id)
+                blueArr.sort()
+                if (checkForWin(blueArr)) {
+                    messageBox.innerText = '0 wins!'
+                    cellArr.forEach(cell => cell.onclick = false)
+                }
+            }
+            square.onclick = false
+
+
+        }
+    </script>
+</body>
+
+</html>
